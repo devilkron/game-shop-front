@@ -1,0 +1,142 @@
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+
+export default function Product() {
+  const [game, setGame] = useState([]);
+  const [notification, setNotification] = useState({ message: '', type: '' });
+
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        const response = await axios.get('http://localhost:8889/admin/typegames');
+        setGame(response.data.typegames);
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+      }
+    };
+
+    fetchMenuItems();
+  }, []);
+
+  const hdlDelete = async (e, id) => {
+    try {
+      e.stopPropagation();
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://localhost:8889/admin/deletetypegames/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setNotification({ message: 'ลบข้อมูลเรียบร้อย', type: 'success' });
+      setGame((prev) => prev.filter((item) => item.id !== id)); // Remove the item from the list
+    } catch (err) {
+      setNotification({ message: 'Error: ' + err.message, type: 'error' });
+    }
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <Notification message={notification.message} type={notification.type} />
+      <table className="table table-zebra">
+        <thead>
+          <tr>
+            <th>ลำดับ</th>
+            <th>ชื่อเกม</th>
+            <th>แก้ไข</th>
+            <th>ลบ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {game.map((item) => (
+            <tr key={item.id}>
+              <th>{item.id}</th>
+              <th>{item.gametype_name}</th>
+              <th>
+                <button className="btn btn-warning" onClick={() => document.getElementById(`my_modal_${item.id}`).showModal()}>แก้ไข</button>
+              </th>
+              <th>
+                <button
+                  className="btn btn-error"
+                  onClick={(e) => hdlDelete(e, item.id)}
+                >
+                  ลบ
+                </button>
+              </th>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {game.map((item, index) => (
+        <Modal key={index} item={item} setNotification={setNotification} />
+      ))}
+    </div>
+  );
+}
+
+const Modal = ({ item, setNotification }) => {
+  const modalId = `my_modal_${item.id}`;
+  const [editData, setEditData] = useState({
+    gametype_name: item.gametype_name,
+  });
+  const [isEditing, setEditing] = useState(false);
+
+  const handleEditClick = () => {
+    setEditData({ ...item });
+    setEditing(true);
+  };
+
+  const handleSaveClick = async (e) => {
+    e.stopPropagation();
+    try {
+      const id = item.id;
+      const apiUrl = `http://localhost:8889/admin/updateType/${id}`;
+      await axios.patch(apiUrl, editData);
+      setNotification({ message: 'Update Successful', type: 'success' });
+      setEditing(false);
+      document.getElementById(modalId).close();
+    } catch (error) {
+      setNotification({ message: 'Error: ' + error.message, type: 'error' });
+      console.error("เกิดข้อผิดพลาดในการแก้ไข", error);
+    }
+  };
+
+  const handleChange = (e) => {
+    setEditData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  return (
+    <dialog id={modalId} className="modal">
+      <div className="modal-box">
+        <h3 className="font-bold text-lg mb-5">แก้ไขข้อมูล</h3>
+        <h3 className="text-lg mb-5">GameName: {isEditing ? <input type="text" name="gametype_name" value={editData.gametype_name} onChange={handleChange} /> : item.gametype_name}</h3>
+        <div className="flex justify-end">
+          {isEditing ? (
+            <button className="btn btn-success" onClick={handleSaveClick}>บันทึก</button>
+          ) : (
+            <button className="btn btn-warning" onClick={handleEditClick}>แก้ไข</button>
+          )}
+        </div>
+      </div>
+      <form method="dialog" className="modal-backdrop">
+        <button onClick={() => document.getElementById(modalId).close()}>Close</button>
+      </form>
+    </dialog>
+  );
+};
+
+const Notification = ({ message, type }) => {
+  if (!message) return null;
+
+  // Determine background color based on notification type
+  const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+
+  return (
+    <div className={`fixed top-5 right-5 p-4 rounded shadow-lg text-white ${bgColor}`}>
+      {message}
+    </div>
+  );
+};
