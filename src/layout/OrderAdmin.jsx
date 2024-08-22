@@ -1,34 +1,38 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { toast } from "react-toastify";
 
 export default function OrderAdmin() {
   const navigate = useNavigate();
   const [payment, setPayment] = useState([]);
   const [type, setType] = useState([]);
-  const [input, setInput] = useState({ status: '' });
-  const [pdfUrl, setPdfUrl] = useState('');
-
+  const [input, setInput] = useState({ status: "" });
+  const [pdfUrl, setPdfUrl] = useState("");
   useEffect(() => {
     const fetchPayment = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8889/admin/getOrder', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          "http://localhost:8889/admin/getOrder",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setPayment(response.data);
       } catch (error) {
-        console.error('Error fetching payment:', error);
+        console.error("Error fetching payment:", error);
       }
     };
 
     const fetchType = async () => {
       try {
-        const response = await axios.get('http://localhost:8889/admin/getGameByPoint');
+        const response = await axios.get(
+          "http://localhost:8889/admin/getGameByPoint"
+        );
         setType(response.data.get);
       } catch (error) {
-        console.error('Error fetching types:', error);
+        console.error("Error fetching types:", error);
       }
     };
 
@@ -38,22 +42,22 @@ export default function OrderAdmin() {
 
   const getPriceByPointId = (pointId) => {
     const game = type.find((game) => game.id === pointId);
-    return game ? game.price : '';
+    return game ? game.price : "";
   };
 
   const getPointById = (pointId) => {
     const game = type.find((game) => game.id === pointId);
-    return game ? game.point : '';
+    return game ? game.point : "";
   };
 
   const getGameNameById = (gameId) => {
     const game = type.find((game) => game.gameId === gameId);
-    return game ? game.game.game_name : '';
+    return game ? game.game.game_name : "";
   };
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await axios.put(
         `http://localhost:8889/admin/updateStatus/${id}`,
         { status: newStatus },
@@ -71,35 +75,51 @@ export default function OrderAdmin() {
 
   const handleChangeStatus = (id, e) => {
     const newStatus = e.target.value;
+    if (input.status === "เสร็จสิ้น" && newStatus === "ยกเลิก") {
+      toast.error("ไม่สามารถเปลี่ยนสถานะเป็น ยกเลิก เมื่อสถานะปัจจุบันคือ เสร็จสิ้น");
+      return;
+    }
     setInput((prevOrderItem) => ({
       ...prevOrderItem,
       status: newStatus,
     }));
     updateStatus(id, newStatus);
+    toast.success(`เปลี่ยนสถานะเป็น${newStatus} เรียบร้อยแล้ว`);
+
   };
 
   const deleteOrder = async (paymentId) => {
-    const confirmDelete = window.confirm('ต้องการที่จะลบคำสั่งซื้อ?');
+    const confirmDelete = window.confirm("ต้องการที่จะลบคำสั่งซื้อ?");
     if (!confirmDelete) {
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8889/admin/deleteOrder/${paymentId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setPayment((prevPayments) => prevPayments.filter((payment) => payment.id !== paymentId));
-      alert('ลบคำสั่งซื้อเรียบร้อย');
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://localhost:8889/admin/deleteOrder/${paymentId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setPayment((prevPayments) =>
+        prevPayments.filter((payment) => payment.id !== paymentId)
+      );
+      toast.success("ลบคำสั่งซื้อเรียบร้อย")
     } catch (error) {
-      console.error('Error deleting order:', error.response?.data || error.message);
-      alert(`Failed to delete order: ${error.response?.data?.msg || error.message}`);
+      console.error(
+        "Error deleting order:",
+        error.response?.data || error.message
+      );
+      alert(
+        `Failed to delete order: ${error.response?.data?.msg || error.message}`
+      );
     }
   };
 
   const generateReceipt = async (orderId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await axios.post(
         `http://localhost:8889/admin/generateReceipt/${orderId}`,
         {},
@@ -107,8 +127,8 @@ export default function OrderAdmin() {
       );
       setPdfUrl(response.data.filePath); // ตั้งค่า URL ของ PDF
     } catch (error) {
-      console.error('Error generating receipt:', error);
-      alert('Failed to generate receipt');
+      console.error("Error generating receipt:", error);
+      alert("Failed to generate receipt");
     }
   };
 
@@ -119,7 +139,7 @@ export default function OrderAdmin() {
         <table className="w-full table-auto border-collapse">
           <thead>
             <tr className="bg-gray-200 text-gray-700">
-              <th className="px-4 py-2 border-b">No.</th>
+              <th className="px-4 py-2 border-b">เลขที่</th>
               <th className="px-4 py-2 border-b">ไอดีเกมส์</th>
               <th className="px-4 py-2 border-b">จำนวนพอยท์</th>
               <th className="px-4 py-2 border-b">ราคา</th>
@@ -149,7 +169,7 @@ export default function OrderAdmin() {
                           className="w-24 h-16 object-cover rounded shadow"
                         />
                       ))
-                    : 'No slip'}
+                    : "No slip"}
                 </td>
                 <td className="px-4 py-2">
                   {item.Payment.length > 0
@@ -158,7 +178,7 @@ export default function OrderAdmin() {
                           {new Date(payment.pay_time).toLocaleString()}
                         </div>
                       ))
-                    : 'No payment time'}
+                    : "No payment time"}
                 </td>
                 <td className="px-4 py-2">
                   <select
@@ -172,12 +192,24 @@ export default function OrderAdmin() {
                   </select>
                 </td>
                 <td className="px-4 py-2">
-                  <button onClick={() => generateReceipt(item.id)} className="bg-blue-500 text-white px-3 py-1 rounded">
+                  <button
+                    onClick={() => generateReceipt(item.id)}
+                    className="cursor-pointer transition-all bg-blue-500 text-white px-6 py-2 rounded-lg
+border-blue-600
+border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px]
+active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
+                  >
                     สร้างใบเสร็จ
                   </button>
                 </td>
                 <td className="px-4 py-2">
-                  <button onClick={() => deleteOrder(item.id)} className="bg-red-500 text-white px-3 py-1 rounded">
+                  <button
+                    onClick={() => deleteOrder(item.id)}
+                    className="cursor-pointer transition-all bg-red-500 text-white px-6 py-2 rounded-lg
+border-red-600
+border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px]
+active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
+                  >
                     ลบ
                   </button>
                 </td>
@@ -185,7 +217,6 @@ export default function OrderAdmin() {
             ))}
           </tbody>
         </table>
-
       </div>
     </div>
   );

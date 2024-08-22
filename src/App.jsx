@@ -1,6 +1,7 @@
 import useAuth from "./hooks/useAuth";
 import AppRouter from "./routes/AppRouter";
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 function App() {
   const {loading} = useAuth()
 
@@ -12,6 +13,7 @@ function App() {
 
   return (
     <div className="min-h-screen">
+      <ToastContainer />
       <AppRouter />
     </div>
   );

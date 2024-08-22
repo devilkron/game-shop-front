@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function RegisterForm() {
   const [input, setInput] = useState({
@@ -9,7 +10,7 @@ export default function RegisterForm() {
     confirmPassword: '',
     email: ''
   });
-  const [notification, setNotification] = useState({ message: '', type: '' });
+  // const [notification, setNotification] = useState({ message: '', type: '' });
   const navigate = useNavigate();
 
   const hdlChange = (e) => {
@@ -21,34 +22,43 @@ export default function RegisterForm() {
       e.preventDefault();
       // validation
       if (input.password !== input.confirmPassword) {
-        setNotification({ message: 'Please check confirm password', type: 'error' });
+        toast.warning("รหัสผ่านไม่ตรงกัน")
+        // setNotification({ message: 'Please check confirm password', type: 'error' });
         return;
       }
       const rs = await axios.post('http://localhost:8889/auth/register', input);
       if (rs.status === 200) {
-        setNotification({ message: 'สมัครสมาชิกเรียบร้อย', type: 'success' });
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        toast.success("สมัครสมาชิกเรียบร้อย",{
+          autoClose:2000,
+          onClose: () => {
+            navigate("/login")
+          }
+        })
       }
+      // const toastID = toast.success("สมัครสมาชิกเรียบร้อย")
+      // setTimeout(() => {
+      //  toast.dismiss(toastID)
+      //  navigate("/login")
+      // },2000)
     } catch (err) {
-      setNotification({ message: 'กรุณากรอกข้อมูลให้ครบ', type: 'error' });
-      console.log(err.message);
+      // setNotification({ message: 'กรุณากรอกข้อมูลให้ครบ', type: 'error' });
+      toast.error("กรุณากรอกข้อมูลให้ครบ")
+      // console.log(err.response.data);
     }
   };
 
-  const Notification = ({ message, type, onClose }) => {
-    if (!message) return null;
+  // const Notification = ({ message, type, onClose }) => {
+  //   if (!message) return null;
 
-    const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+  //   const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
 
-    return (
-      <div className={`fixed top-5 right-5 p-4 rounded shadow-lg text-white ${bgColor}`}>
-        {message}
-        <button className="ml-4 text-white" onClick={onClose}>x</button>
-      </div>
-    );
-  };
+  //   return (
+  //     <div className={`fixed top-5 right-5 p-4 rounded shadow-lg text-white ${bgColor}`}>
+  //       {message}
+  //       <button className="ml-4 text-white" onClick={onClose}>x</button>
+  //     </div>
+  //   );
+  // };
 
   return (
     <div className="p-5 border w-1/3 min-w-[500px] mx-auto rounded mt-5 bg-purple-100">
@@ -107,11 +117,11 @@ export default function RegisterForm() {
           <button type="submit" className="btn btn-outline bg-purple-500 text-white">Submit</button>
         </div>
       </form>
-      <Notification 
+      {/* <Notification 
         message={notification.message} 
         type={notification.type} 
         onClose={() => setNotification({ message: '', type: '' })}
-      />
+      /> */}
     </div>
   );
 }

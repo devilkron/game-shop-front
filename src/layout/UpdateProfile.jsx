@@ -1,14 +1,15 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const guestNav = [{ to: "/" }];
 
 const userNav = [{ to: "/", text: "Home" }];
 
 export default function UpdateProfile() {
-  const { user, logout } = useAuth();
+  const { user, logout, reload, setReload } = useAuth();
   const finalNav = user?.id ? userNav : guestNav;
 
   const [input, setInput] = useState({
@@ -18,15 +19,16 @@ export default function UpdateProfile() {
     newPassword: "",
     confirmNewPassword: "",
   });
+
   useEffect(() => {
     setInput({
       email: user?.email || "",
       username: user?.username || "",
-      oldPassword: "",
+      oldPassword: user?.password,
       newPassword: "",
       confirmNewPassword: "",
     });
-  }, [user?.id]);
+  }, [user?.id, reload]);
 
   const hdlChange = (e) => {
     setInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -62,19 +64,25 @@ export default function UpdateProfile() {
         }
       );
 
-      if (response.data.msg === "Update ok") {
-        alert("แก้ไขข้อมูลสำเร็จ");
-        setUser(response.data.result);
+      if (response.status === 200) {
+        // console.log(response.data.msg)
+        toast.success("แก้ไขข้อมูลสำเร็จ", {
+          autoClose: 2000,
+          onClose: () => {
+            setReload(prev => !prev)
+          }
+        });
+        
+        // setUser(response.data.result);
       } else {
-        alert("รหัสผ่านเดิมไม่ถูกต้อง");
+        toast.warning("รหัสผ่านเดิมไม่ถูกต้อง");
       }
-      location.reload();
+      
+
     } catch (error) {
       alert(error.message);
     }
   };
-
-  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col items-center pt-10 bg-purple-50 min-h-screen">

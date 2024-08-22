@@ -1,7 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
-export default function GamePointsAdmin() {
+export default function GamePointsAdmin({reload, setReload}) {
   const [games, setGames] = useState([]);
   const [modalGame, setModalGame] = useState(null);
   const [editData, setEditData] = useState({});
@@ -17,7 +18,7 @@ export default function GamePointsAdmin() {
     };
 
     fetchGames();
-  }, []);
+  }, [reload]);
 
   const handleEditClick = (game) => {
     setModalGame(game);
@@ -35,7 +36,8 @@ export default function GamePointsAdmin() {
           axios.patch(`http://localhost:8889/admin/updateGamePoint/${pointId}`, editData[pointId])
         )
       );
-      alert('แก้ไขเรียบร้อย');
+      toast.success("แก้ไขเรียบร้อย")
+      setReload(!reload)
       setModalGame(null); // Close the modal
       setEditData({});
     } catch (error) {
@@ -55,7 +57,7 @@ export default function GamePointsAdmin() {
         const { [pointId]: _, ...remaining } = prevData;
         return remaining;
       });
-      alert('Point deleted successfully');
+      toast.success("ลบแต้มเกมส์เรียบร้อยแล้ว")
     } catch (error) {
       console.error("Error deleting point", error);
     }
@@ -78,7 +80,7 @@ export default function GamePointsAdmin() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {games.map((game) => (
           <div key={game.id} className="bg-white shadow-lg rounded-lg overflow-hidden">
-            <img src={game.img} alt={game.game_name} className="w-full h-48 object-cover" />
+            <img src={game.img} alt={game.game_name} className="w-full h-48 object-cover pointer-events-none" />
             <div className="p-4">
               <h2 className="text-xl font-semibold mb-2">{game.game_name}</h2>
               <div className="mb-4">
@@ -104,7 +106,7 @@ export default function GamePointsAdmin() {
       {modalGame && (
         <dialog id={`edit_modal_${modalGame.id}`} open className="modal">
           <div className="modal-box bg-white rounded-lg p-6 shadow-lg max-w-lg mx-auto">
-            <h3 className="text-2xl font-semibold mb-4">Edit Points and Price for {modalGame.game_name}</h3>
+            <h3 className="text-2xl font-semibold mb-4">แก้ไขแต้มและราคา {modalGame.game_name}</h3>
             {modalGame.Point.map((point) => (
               <div key={point.id} className="mb-6 p-4 border rounded bg-gray-50">
                 <h4 className="text-lg font-medium mb-2">Point ID: {point.id}</h4>
@@ -132,7 +134,7 @@ export default function GamePointsAdmin() {
                   onClick={() => handleDelete(point.id)}
                   className="btn btn-danger mt-2"
                 >
-                  Delete Point
+                  ลบแต้ม
                 </button>
               </div>
             ))}
@@ -141,18 +143,18 @@ export default function GamePointsAdmin() {
                 className="btn btn-success"
                 onClick={handleSaveClick}
               >
-                Save
+                บันทึก
               </button>
             </div>
             <button
               className="btn btn-secondary mt-4"
               onClick={() => setModalGame(null)} // Close the modal
             >
-              Close
+              ปิด
             </button>
           </div>
           <form method="dialog" className="modal-backdrop">
-            <button onClick={() => setModalGame(null)}>Close</button>
+            <button onClick={() => setModalGame(null)}>ปิด</button>
           </form>
         </dialog>
       )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Gameadmin from "../layout/gameAdmin";
+import { toast } from "react-toastify";
 
 export default function ProductForm() {
   const [input, setInput] = useState({
@@ -9,8 +10,7 @@ export default function ProductForm() {
     gametypeId: "",
   });
   const [typegames, setType] = useState([]);
-  const [notification, setNotification] = useState({ message: '', type: '' }); // Notification state
-
+  const [reload, setReload] = useState(false);
   const hdlChange = (e) => {
     setInput((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -19,22 +19,16 @@ export default function ProductForm() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:8889/admin/createproduct",
-        input,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setNotification({ message: 'เพิ่มข้อมูลเรียบร้อย', type: 'success' });
+      await axios.post("http://localhost:8889/admin/createproduct", input, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("เพิ่มเกมส์เรียบร้อยแล้ว");
+      setReload(!reload)
       setInput({ name: "", img: "", gametypeId: "" }); // Reset input fields
 
-      // Reload the page after a short delay to allow notification display
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000); // Delay in milliseconds
+      
     } catch (err) {
-      setNotification({ message: 'กรอกข้อมูลให้ครบ', type: 'error' });
+      toast.warning("กรอกข้อมูลให้ครบ");
     }
   };
 
@@ -44,7 +38,7 @@ export default function ProductForm() {
         const rs1 = await axios.get("http://localhost:8889/admin/getType");
         setType(rs1.data.getG);
       } catch (err) {
-        console.error('Error fetching product types:', err);
+        console.error("Error fetching product types:", err);
       }
     };
     getProList();
@@ -52,7 +46,6 @@ export default function ProductForm() {
 
   return (
     <div className="flex flex-col items-center bg-gray-100 py-10">
-      <Notification message={notification.message} type={notification.type} />
       <form
         className="flex flex-col min-w-[600px] border rounded w-5/6 mx-auto p-4 gap-6 bg-white"
         onSubmit={hdlSubmit}
@@ -105,19 +98,7 @@ export default function ProductForm() {
         </label>
         <button className="btn btn-primary">เพิ่มใหม่</button>
       </form>
-      <Gameadmin />
+      <Gameadmin reload={reload} setReload={setReload}/>
     </div>
   );
 }
-
-const Notification = ({ message, type }) => {
-  if (!message) return null;
-
-  const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
-
-  return (
-    <div className={`fixed top-5 right-5 p-4 rounded shadow-lg text-white ${bgColor}`}>
-      {message}
-    </div>
-  );
-};

@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 import useAuth from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { toast } from "react-toastify";
 export default function LoginForm() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
@@ -10,7 +10,7 @@ export default function LoginForm() {
     username: '',
     password: '',
   });
-  const [notification, setNotification] = useState({ message: '', type: '' });
+  // const [notification, setNotification] = useState({ message: '', type: '' });
 
   const hdlChange = (e) => {
     setInput((prv) => ({ ...prv, [e.target.name]: e.target.value }));
@@ -18,11 +18,12 @@ export default function LoginForm() {
 
   const hdlSubmit = async (e) => {
     e.preventDefault();
-    setNotification({ message: '', type: '' });
+    // setNotification({ message: '', type: '' });
 
     // Validation
     if (!input.username || !input.password) {
-      setNotification({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน', type: 'error' });
+      // setNotification({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน', type: 'error' });
+      toast.warning("ชื่อหรือรหัสผ่านว่างอยู่")
       return;
     }
 
@@ -33,42 +34,46 @@ export default function LoginForm() {
         headers: { Authorization: `Bearer ${rs.data.token}` },
       });
       setUser(rs1.data);
+      // console.log(rs1.data.username)
+      toast.success(`ยินดีต้อนรับคุณ ${rs1.data.username}`)
       navigate('/');
     } catch (err) {
-      setNotification({ message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', type: 'error' });
-      console.log(err.message);
+      // setNotification({ message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', type: 'error' });
+      // toast.error(err.response.data.error)
+      toast.error("ไม่พบชื่อผู้ใช้งาน")
+      console.log(err.response.data.error);
     }
   };
 
-  useEffect(() => {
-    if (notification.message) {
-      const timer = setTimeout(() => {
-        setNotification({ message: '', type: '' });
-      }, 3000);
-      return () => clearTimeout(timer); // Cleanup the timer
-    }
-  }, [notification.message]);
+  // useEffect(() => {
+  //   if (notification.message) {
+  //     const timer = setTimeout(() => {
+  //       setNotification({ message: '', type: '' });
+  //     }, 3000);
+  //     return () => clearTimeout(timer); // Cleanup the timer
+  //   }
+  // }, [notification.message]);
 
-  const Notification = ({ message, type, onClose }) => {
-    if (!message) return null;
+  // const Notification = ({ message, type, onClose }) => {
+  //   if (!message) return null;
 
-    const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+  //   const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
 
-    return (
-      <div className={`fixed top-5 right-5 p-4 rounded shadow-lg text-white ${bgColor}`}>
-        {message}
-        <button className="ml-4 text-white" onClick={onClose}>x</button>
-      </div>
-    );
-  };
+  //   return (
+  //     <div className={`fixed top-5 right-5 p-4 rounded shadow-lg text-white ${bgColor}`}>
+  //       {message}
+  //       <button className="ml-4 text-white" onClick={onClose}>x</button>
+  //     </div>
+  //   );
+  // };
 
   return (
     <div className="card from-Rose-700">
-      <Notification 
+      {/* <Notification 
         message={notification.message} 
         type={notification.type} 
         onClose={() => setNotification({ message: '', type: '' })}
-      />
+      /> */}
       <div className="card card-side bg-purple-100 shadow-xl mt-10 m-48">
         <Link to="/">
           <figure>

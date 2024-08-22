@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function ProductDetail() {
   const [product, setProduct] = useState({});
@@ -13,7 +14,7 @@ export default function ProductDetail() {
     gameId: '',
     email: '',
   });
-  const [notification, setNotification] = useState({ message: '', type: '' });
+  // const [notification, setNotification] = useState({ message: '', type: '' });
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function ProductDetail() {
         const response = await axios.get(`http://localhost:8889/auth/orderdetail/${product?.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setOrder(response.data);
+        setOrder(response.data); 
       } catch (error) {
         console.error('Error fetching order:', error);
       }
@@ -65,8 +66,8 @@ export default function ProductDetail() {
     e.preventDefault();
     const { user_gameId, point_id } = input;
     if (!user_gameId || !point_id) {
-      setNotification({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน', type: 'error' });
-      return;
+      // setNotification({ message: 'กรุณากรอกข้อมูลให้ครบถ้วน', type: 'error' });
+      return toast.warning("กรุณากรอกข้อมูลให้ครบถ้วน")
     }
 
     try {
@@ -75,40 +76,46 @@ export default function ProductDetail() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.status === 200) {
-        setNotification({ message: 'สั่งซื้อสำเร็จ', type: 'success' });
-        setTimeout(() => navigate('/payment'), 3000); // Navigate after showing the success message
+        toast.success("สั่งซื้อสำเร็จ",{
+          autoClose: 2000,
+          onClose: () => {
+            navigate("/payment")
+          }
+        })
       }
     } catch (error) {
-      setNotification({ message: 'กรุณาเข้าสู่ระบบก่อนทำการสั่งซ์้อ ' , type: 'error' });
+      // setNotification({ message: 'กรุณาเข้าสู่ระบบก่อนทำการสั่งซ์้อ ' , type: 'error' });
+      toast.warning(error.response.data)
+      console.log(error.response.data)
     }
   };
 
-  useEffect(() => {
-    if (notification.message) {
-      const timer = setTimeout(() => {
-        setNotification({ message: '', type: '' });
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [notification.message]);
+  // useEffect(() => {
+  //   if (notification.message) {
+  //     const timer = setTimeout(() => {
+  //       setNotification({ message: '', type: '' });
+  //     }, 3000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [notification.message]);
 
-  const Notification = ({ message, type }) => {
-    if (!message) return null;
+  // const Notification = ({ message, type }) => {
+  //   if (!message) return null;
 
-    const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+  //   const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
 
-    return (
-      <div className={`fixed top-5 right-5 p-4 rounded shadow-lg text-white ${bgColor}`}>
-        {message}
-      </div>
-    );
-  };
+  //   return (
+  //     <div className={`fixed top-5 right-5 p-4 rounded shadow-lg text-white ${bgColor}`}>
+  //       {message}
+  //     </div>
+  //   );
+  // };
 
   const findType = type.filter((el) => el.gameId === product.id);
 
   return (
     <div className="bg-white-100 min-h-screen p-8">
-      <Notification message={notification.message} type={notification.type} />
+      {/* <Notification message={notification.message} type={notification.type} /> */}
       <div className="bg-purple-100 shadow-lg rounded-lg p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="flex flex-col items-center">
           <img src={product.img} alt="" className="w-full h-auto mb-4" />

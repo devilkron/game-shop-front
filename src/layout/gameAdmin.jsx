@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-export default function Product() {
+export default function Product({reload, setReload}) {
   const [product, setProduct] = useState([]);
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function Product() {
     };
 
     fetchMenuItems();
-  }, []);
+  }, [reload]);
 
   const hdlDelete = async (e, id) => {
     try {
@@ -28,8 +29,7 @@ export default function Product() {
       await axios.delete(`http://localhost:8889/admin/deletegame/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Delete Successful');
-      location.reload();
+      toast.success("ลบเกมส์สำเร็จ")
       setProduct(prevProducts => prevProducts.filter(item => item.id !== id));
     } catch (err) {
       console.log(err);
@@ -63,21 +63,20 @@ export default function Product() {
         </tbody>
       </table>
       {product.map((item, index) => (
-        <Modal key={index} item={item} setProduct={setProduct} />
+        <Modal key={index} item={item} setProduct={setProduct} setReload={setReload} reload={reload}/>
       ))}
 
     </div>
   );
 }
 
-const Modal = ({ item, setProduct }) => {
+const Modal = ({ item, setProduct, setReload, reload }) => {
   const modalId = `my_modal_${item.id}`;
   const [editData, setEditData] = useState({
     game_name: item.game_name,
     img: item.img,
     gametype_id: item.gametype_name.id,
   });
-
   const handleSaveClick = async (e) => {
     e.stopPropagation();
     try {
@@ -87,7 +86,8 @@ const Modal = ({ item, setProduct }) => {
       await axios.patch(apiUrl, editData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert('Update Successful');
+      toast.success("อัปเดทเกมส์เรียบร้อย")
+      setReload(!reload)
       document.getElementById(modalId).close();
       setProduct(prevProducts =>
         prevProducts.map(product =>
@@ -95,6 +95,7 @@ const Modal = ({ item, setProduct }) => {
         )
       );
     } catch (error) {
+      toast.error("เกิดข้อผิดพลาดในการแก้ไข")
       console.error("Error updating data", error);
     }
   };

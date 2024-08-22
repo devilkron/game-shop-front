@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import React, { useState } from "react";
+import { toast } from 'react-toastify';
 
 const guestNav = [
   { to: '/login', text: 'Login' },
@@ -44,6 +45,7 @@ export default function Header() {
 
   const hdlLogout = () => {
     logout();
+    toast.success("ออกจากระบบเรียบร้อย")
     navigate('/');
   };
 
