@@ -12,7 +12,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div data-theme="light" className="min-h-screen">
       <ToastContainer />
       <AppRouter />
     </div>

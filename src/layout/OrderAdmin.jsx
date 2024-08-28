@@ -76,7 +76,9 @@ export default function OrderAdmin() {
   const handleChangeStatus = (id, e) => {
     const newStatus = e.target.value;
     if (input.status === "เสร็จสิ้น" && newStatus === "ยกเลิก") {
-      toast.error("ไม่สามารถเปลี่ยนสถานะเป็น ยกเลิก เมื่อสถานะปัจจุบันคือ เสร็จสิ้น");
+      toast.error(
+        "ไม่สามารถเปลี่ยนสถานะเป็น ยกเลิก เมื่อสถานะปัจจุบันคือ เสร็จสิ้น"
+      );
       return;
     }
     setInput((prevOrderItem) => ({
@@ -85,7 +87,6 @@ export default function OrderAdmin() {
     }));
     updateStatus(id, newStatus);
     toast.success(`เปลี่ยนสถานะเป็น${newStatus} เรียบร้อยแล้ว`);
-
   };
 
   const deleteOrder = async (paymentId) => {
@@ -105,7 +106,7 @@ export default function OrderAdmin() {
       setPayment((prevPayments) =>
         prevPayments.filter((payment) => payment.id !== paymentId)
       );
-      toast.success("ลบคำสั่งซื้อเรียบร้อย")
+      toast.success("ลบคำสั่งซื้อเรียบร้อย");
     } catch (error) {
       console.error(
         "Error deleting order:",
@@ -125,7 +126,13 @@ export default function OrderAdmin() {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setPdfUrl(response.data.filePath); // ตั้งค่า URL ของ PDF
+      if (response.status === 200) {
+        setPdfUrl(response.data.filePath); // ตั้งค่า URL ของ PDF
+        const link = document.createElement("a");
+        link.href = response.data.filePath;
+        link.target = "_blank"; // Open the PDF in a new tab
+        link.click();
+      }
     } catch (error) {
       console.error("Error generating receipt:", error);
       alert("Failed to generate receipt");
@@ -196,9 +203,9 @@ export default function OrderAdmin() {
                     onClick={() => generateReceipt(item.id)}
                     className="cursor-pointer transition-all bg-blue-500 text-white px-6 py-2 rounded-lg
 border-blue-600
-border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px]
-active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
-                  >
+border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] disabled:hover:translate-y-[0px] hover:border-b-[6px]
+active:border-b-[2px] active:brightness-90 active:translate-y-[2px] disabled:active:translate-y-0 disabled:opacity-40"
+                  disabled={item.status !== "เสร็จสิ้น"}>
                     สร้างใบเสร็จ
                   </button>
                 </td>
@@ -208,8 +215,8 @@ active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
                     className="cursor-pointer transition-all bg-red-500 text-white px-6 py-2 rounded-lg
 border-red-600
 border-b-[4px] hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px]
-active:border-b-[2px] active:brightness-90 active:translate-y-[2px]"
-                  >
+active:border-b-[2px] active:brightness-90 active:translate-y-[2px] disabled:active:translate-y-0 disabled:opacity-40"
+                  disabled={item.status === "เสร็จสิ้น"} >
                     ลบ
                   </button>
                 </td>

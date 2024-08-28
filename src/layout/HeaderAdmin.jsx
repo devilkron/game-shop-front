@@ -18,7 +18,10 @@ export default function HeaderAdmin() {
 
   const hdlLogout = () => {
     logout();
-    toast.success("ออกจากระบบเรียบร้อย")
+    toast.success("ออกจากระบบเรียบร้อย",{
+      autoClose:2000,
+      position:'top-center'
+    })
     navigate("/");
   };
 const hdlHome = () => {

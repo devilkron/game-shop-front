@@ -35,7 +35,10 @@ export default function LoginForm() {
       });
       setUser(rs1.data);
       // console.log(rs1.data.username)
-      toast.success(`ยินดีต้อนรับคุณ ${rs1.data.username}`)
+      toast.success(`ยินดีต้อนรับคุณ ${rs1.data.username}`,{
+        autoClose:2000,
+        position: "top-center"
+      })
       navigate('/');
     } catch (err) {
       // setNotification({ message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง', type: 'error' });
